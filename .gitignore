@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+
+# Build artifacts
+*.o
+*.out
+a.out
+*.exe
+*.dSYM/
+build/
+cmake-build-*/
+logger
+converter
+
+# VS Code
+.vscode/
+
+# Logs / output
+*.log
+*.bin
+
+# Temporary
+*.swp
+
+# Common compiled outputs
+*.out
+*.app
+
+
