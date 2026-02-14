@@ -3,7 +3,7 @@
 #include "telemetry/PacketWriter.h"
 
 
-PacketWriter::PacketWriter(Endianness endianness)
+PacketWriter::PacketWriter(PacketWriter::Endianness endianness)
     :endianness_(endianness){}
 
 PacketWriter::~PacketWriter() = default;
@@ -14,7 +14,7 @@ PacketWriter& PacketWriter::add_u8(std::uint8_t byte) {
 }
 
 PacketWriter& PacketWriter::add_u16(std::uint16_t value) {
-    if (endianness_ == Endianness::Big) {
+    if (endianness_ == PacketWriter::Endianness::Big) {
         add_u8(static_cast<uint8_t>((value >> 8) & 0xFF));
         add_u8(static_cast<uint8_t>(value & 0xFF));
     } else {
@@ -25,7 +25,7 @@ PacketWriter& PacketWriter::add_u16(std::uint16_t value) {
 }
 
 PacketWriter& PacketWriter::add_u32(std::uint32_t value) {
-    if (endianness_ == Endianness::Big) {
+    if (endianness_ == PacketWriter::Endianness::Big) {
         add_u8(static_cast<uint8_t>((value >> 24) & 0xFF));
         add_u8(static_cast<uint8_t>((value >> 16) & 0xFF));
         add_u8(static_cast<uint8_t>((value >> 8) & 0xFF));

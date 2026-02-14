@@ -6,16 +6,15 @@
 #include <cstddef>
 #include <string_view>
 
-enum class Endianness {
-    Little,
-    Big
-};
+
 
 class PacketWriter {
-    private:
-        std::vector<std::uint8_t> buffer_;
-        Endianness endianness_;
     public:
+        enum class Endianness {
+            Little,
+            Big
+        };
+
         explicit PacketWriter(Endianness endianness = Endianness::Big);
         ~PacketWriter();
 
@@ -30,6 +29,9 @@ class PacketWriter {
         void clear();
         std::size_t size() const;
         void reserve(std::size_t);
+    private:
+        std::vector<std::uint8_t> buffer_;
+        Endianness endianness_;
 
         
 };

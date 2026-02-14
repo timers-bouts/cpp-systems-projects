@@ -29,4 +29,11 @@ app
 *.out
 *.app
 
+# Executable Binaries
+*_demo
+converter
+logger
+recorder_demo
+packet_builder_demo
+
 
