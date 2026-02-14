@@ -11,6 +11,9 @@ build/
 cmake-build-*/
 logger
 converter
+bin/
+build/
+app
 
 # VS Code
 .vscode/
