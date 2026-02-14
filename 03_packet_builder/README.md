@@ -17,12 +17,19 @@ The packet builder supports:
 
 ## Project Structure
 
+PacketWriter lives in ../telemetry_lib/
+03_packet_builder/ is now a demo app that uses the shared library
+
 ```text
 03_packet_builder/
-  include/telemetry/PacketWriter.h
-  src/PacketWriter.cpp
   main.cpp
   Makefile
+```
+
+PacketWriter is now part of the shared telemetry library:
+```text
+telemetry_lib/include/telemetry/PacketWriter.h
+telemetry_lib/src/PacketWriter.cpp
 ```
 
 ---
@@ -55,7 +62,7 @@ Device ID (string) = "SENSOR_A"
 ## Building
 ```
 make
-./bin/packet_demo
+./packet_builder_demo
 ```
 
 ---

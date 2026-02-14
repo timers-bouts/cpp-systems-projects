@@ -22,15 +22,17 @@ These projects serve as stepping stones toward a larger capstone project:
 
 ```text
 cpp-systems-projects/
-  01_unit_converter/
-  02_logger/
-  03_packet_builder/        (upcoming)
-  04_binary_recorder/       (upcoming)
+  telemetry_lib/        Shared reusable telemetry modules
+  01_converter/         CLI warmup
+  02_logger/            Reusable logging utility
+  03_packet_builder/    PacketWriter demo app
+  04_recorder/          Binary telemetry recorder demo app
   05_packet_parser/         (upcoming)
   06_telemetry_simulator/   (upcoming)
+
 ```
 
-Each folder is a standalone mini-project with its own build instructions and README.
+PacketWriter and TelemetryRecorder now live in telemetry_lib/ and are reused across projects.
 
 ---
 
@@ -125,6 +127,7 @@ A full mini telemetry system:
 ## Build Instructions
 
 Each project contains its own Makefile or build commands.
+Projects compile against sources in telemetry_lib/
 
 Typical build workflow:
 

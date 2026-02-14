@@ -2,9 +2,10 @@ CXX      = clang++
 CXXFLAGS = -std=c++20 -Wall -Wextra -Wpedantic \
            -Iinclude -I../telemetry_lib/include
 
-TARGET   = packet_builder_demo
+TARGET   = recorder_demo
 
 SRC      = main.cpp \
+           ../telemetry_lib/src/TelemetryRecorder.cpp \
            ../telemetry_lib/src/PacketWriter.cpp
 
 OBJ      = $(SRC:.cpp=.o)
