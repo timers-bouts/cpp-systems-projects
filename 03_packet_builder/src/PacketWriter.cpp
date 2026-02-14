@@ -6,6 +6,8 @@
 PacketWriter::PacketWriter(Endianness endianness)
     :endianness_(endianness){}
 
+PacketWriter::~PacketWriter() = default;
+
 PacketWriter& PacketWriter::add_u8(std::uint8_t byte) {
     buffer_.push_back(byte);
     return *this;

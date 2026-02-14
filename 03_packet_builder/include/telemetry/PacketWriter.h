@@ -17,6 +17,7 @@ class PacketWriter {
         Endianness endianness_;
     public:
         explicit PacketWriter(Endianness endianness = Endianness::Big);
+        ~PacketWriter();
 
         PacketWriter& add_u8(std::uint8_t);
         PacketWriter& add_u16(std::uint16_t);
