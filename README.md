@@ -78,15 +78,28 @@ Example output:
 2026-02-05 14:03:30 [ERROR] Sensor disconnected
 ```
 
+### ✅ 03 — Telemetry Packet Builder
+
+A reusable binary packet construction library built in modern C++20.
+
+Features include:
+- Safe byte-buffer packet building using std::vector<uint8_t>
+- Type-safe field append methods (u8, u16, u32, float)
+- Explicit endianness handling (big vs little endian)
+- Raw payload support with add_bytes()
+- Binary-safe export using std::span<const uint8_t>
+- Efficient buffer reuse with reserve()
+- Modular header/source split (PacketWriter.h / PacketWriter.cpp)
+- Makefile-based build workflow
+
+Example packet output (hex):
+```
+01 00 2A 00 01 86 A0 41 CC 00 00 00 08 53 45 4E 53 4F 52 5F 41
+```
+
 ---
 
 ## Upcoming Projects
-
-### 🔜 03 — Telemetry Packet Builder
-
-- Binary packet construction using `std::vector<uint8_t>`
-- Integer and float packing
-- Endianness considerations
 
 ### 🔜 04 — Binary Telemetry Recorder
 
