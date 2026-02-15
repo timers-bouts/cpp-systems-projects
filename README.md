@@ -99,14 +99,31 @@ Example packet output (hex):
 01 00 2A 00 01 86 A0 41 CC 00 00 00 08 53 45 4E 53 4F 52 5F 41
 ```
 
+### ✅ 04 — Binary Telemetry Recorder
+A reusable binary telemetry recording module built in modern C++20.
+
+Features include:
+- Stream-based telemetry packet persistence using std::ofstream in binary mode
+- Safe framed recording format: [u32 packet_size][packet_bytes...]
+- Support for writing multiple packets over time (continuous append recording)
+- RAII-based file ownership (open in constructor, close automatically)
+- Optional append vs truncate modes for flexible recording workflows
+- Fixed file header with magic signature ("TLRY") and versioning support
+- Length-prefix framing for future parsing and validation (Project 5)
+- Integration with PacketWriter via std::span<const uint8_t> zero-copy packet export
+- Modular reusable library design inside telemetry_lib/
+- Makefile-based build + demo testing workflow
+
+Example recorded stream output (hex):
+```
+54 4C 52 59 01 00 00 00
+03 00 00 00 AA BB CC
+05 00 00 00 12 34 56 78 9A
+```
+
 ---
 
 ## Upcoming Projects
-
-### 🔜 04 — Binary Telemetry Recorder
-
-- Writing packet streams to disk
-- File format design
 
 ### 🔜 05 — Packet Parser + Validator
 

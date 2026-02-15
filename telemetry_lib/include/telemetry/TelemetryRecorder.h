@@ -23,10 +23,6 @@ public:
     TelemetryRecorder(const TelemetryRecorder& recorder) = delete;
     TelemetryRecorder& operator=(const TelemetryRecorder& recorder) = delete;
 
-    // Movable (optional, but nice for modern C++)
-    TelemetryRecorder(TelemetryRecorder&&) noexcept;
-    TelemetryRecorder& operator=(TelemetryRecorder&&) noexcept;
-
     // Write one framed packet:
     // [u32 size][packet bytes...]
     void write_packet(std::span<const std::uint8_t> packet_bytes);
