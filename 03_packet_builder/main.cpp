@@ -20,7 +20,7 @@ void print_packet(const std::span<const uint8_t>& bytes) {
 }
 
 int main() {
-    PacketWriter pw{PacketWriter::Endianness::Big};
+    telemetry::PacketWriter pw{telemetry::PacketWriter::Endianness::Big};
 
     // 1) Message type (u8)
     pw.add_u8(0x01);
