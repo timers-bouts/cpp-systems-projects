@@ -1,60 +1,43 @@
-# 05_reader/Makefile
-#
-# Project 5 — Telemetry Packet Reader Demo
-#
-# Builds:
-#   - main.cpp (this project)
-#   - telemetry_lib sources (shared reusable library)
-#
-# Usage:
-#   make
-#   make run ARGS=../04_recorder/output.bin
-#   make clean
+.PHONY: all clean rebuild run
 
 CXX      := clang++
 CXXFLAGS := -std=c++20 -Wall -Wextra -Wpedantic -O2 -g
-
-# Include path for shared telemetry headers
 CPPFLAGS := -I../telemetry_lib/include
 
-# Output directories
 BUILD_DIR := build
-OBJ_DIR   := $(BUILD_DIR)/obj
 BIN_DIR   := $(BUILD_DIR)/bin
+OBJ_DIR   := $(BUILD_DIR)/obj
+TARGET    := $(BIN_DIR)/reader_demo
 
-TARGET := $(BIN_DIR)/reader_demo
-
-# Sources
 APP_SRC := main.cpp
-LIB_SRC := $(wildcard ../telemetry_lib/src/*.cpp)
+# Explicit list is more stable than wildcard as your library grows
+LIB_SRC := ../telemetry_lib/src/TelemetryRecorder.cpp \
+           ../telemetry_lib/src/PacketWriter.cpp \
+           ../telemetry_lib/src/TelemetryReader.cpp
 
-SRC := $(APP_SRC) $(LIB_SRC)
+APP_OBJ := $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(APP_SRC))
+LIB_OBJ := $(patsubst ../telemetry_lib/src/%.cpp,$(BUILD_DIR)/telemetry_lib/src/%.o,$(LIB_SRC))
 
-# Object files
-OBJ := $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(SRC))
-
-.PHONY: all clean run dirs
+OBJ := $(APP_OBJ) $(LIB_OBJ)
 
 all: $(TARGET)
 
-dirs:
-	@mkdir -p $(OBJ_DIR)
-	@mkdir -p $(OBJ_DIR)/../telemetry_lib/src
+$(TARGET): $(OBJ)
 	@mkdir -p $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ)
 
-# Link final executable
-$(TARGET): dirs $(OBJ)
-	$(CXX) $(CXXFLAGS) $(OBJ) -o $@
-
-# Compile object files
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
 
-# Run helper
+$(BUILD_DIR)/telemetry_lib/src/%.o: ../telemetry_lib/src/%.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
+
 run: all
 	./$(TARGET) $(ARGS)
 
-# Clean build artifacts
 clean:
 	rm -rf $(BUILD_DIR)
+
+rebuild: clean all
