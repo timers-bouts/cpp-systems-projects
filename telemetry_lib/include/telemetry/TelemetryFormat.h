@@ -17,4 +17,6 @@ inline constexpr std::uint16_t kCurrentVersion = 1;
 
 inline constexpr std::array<std::uint8_t, 4> kMagic{'T','L','R','Y'};
 
+inline constexpr std::size_t kRecordSizeFieldBytes = 4;
+
 } // namespace telemetry::format

@@ -62,7 +62,9 @@ namespace telemetry {
         }
         std::uint32_t size = static_cast<std::uint32_t>(packet_bytes.size());
         try {
+            // Write the size of the payload
             write_u32_le(size);
+            // Write the actual payload
             out_.write(reinterpret_cast<const char*>(packet_bytes.data()), static_cast<std::streamsize>(packet_bytes.size()));
         }
         catch (const std::ios_base::failure&) {
