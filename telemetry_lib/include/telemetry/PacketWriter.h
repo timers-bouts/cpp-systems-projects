@@ -31,8 +31,6 @@ namespace telemetry {
             void reserve(std::size_t);
         private:
             std::vector<std::uint8_t> buffer_;
-            Endianness endianness_;
-
-            
+            Endianness endianness_;            
     };
 }

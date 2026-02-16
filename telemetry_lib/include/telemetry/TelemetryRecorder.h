@@ -8,30 +8,29 @@
 namespace telemetry {
 
 class TelemetryRecorder {
-public:
-    enum class OpenMode {
-        Truncate, // overwrite existing file
-        Append    // append new packets to end
+    public:
+        enum class OpenMode {
+            Truncate, // overwrite existing file
+            Append    // append new packets to end
+        };
+
+        TelemetryRecorder(const std::filesystem::path& path,
+                        OpenMode mode = OpenMode::Truncate);
+
+        ~TelemetryRecorder();
+
+        // Non-copyable (owning a file handle should not be copied)
+        TelemetryRecorder(const TelemetryRecorder& recorder) = delete;
+        TelemetryRecorder& operator=(const TelemetryRecorder& recorder) = delete;
+
+        // Write one framed packet:
+        // [u32 size][packet bytes...]
+        void write_packet(std::span<const std::uint8_t> packet_bytes);
+
+        void flush();
+
+    private:
+        std::ofstream out_;
+        void write_u32_le(std::uint32_t);
     };
-
-    TelemetryRecorder(const std::filesystem::path& path,
-                      OpenMode mode = OpenMode::Truncate);
-
-    ~TelemetryRecorder();
-
-    // Non-copyable (owning a file handle should not be copied)
-    TelemetryRecorder(const TelemetryRecorder& recorder) = delete;
-    TelemetryRecorder& operator=(const TelemetryRecorder& recorder) = delete;
-
-    // Write one framed packet:
-    // [u32 size][packet bytes...]
-    void write_packet(std::span<const std::uint8_t> packet_bytes);
-
-    void flush();
-
-private:
-    std::ofstream out_;
-    void write_u32_le(std::uint32_t);
-};
-
 }
