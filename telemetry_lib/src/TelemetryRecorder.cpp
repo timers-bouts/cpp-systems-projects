@@ -3,7 +3,8 @@
 #include <cstdint>
 #include <limits>
 #include <filesystem>
-#include "telemetry/TelemetryRecorder.h"
+#include <telemetry/TelemetryRecorder.h>
+#include <telemetry/TelemetryFormat.h>
 
 // File format:
 // [TLRY][u16 version][u16 flags]
@@ -29,14 +30,13 @@ namespace telemetry {
         out_.exceptions(std::ios::failbit | std::ios::badbit);
 
         // Write the header //
-
         if (mode == TelemetryRecorder::OpenMode::Truncate || empty) {
 
             // 'Magic'
-            out_.write("TLRY", static_cast<std::streamsize>(4));
+            out_.write(reinterpret_cast<const char*>(format::kMagic.data()), static_cast<std::streamsize>(format::kMagicSize));
 
             // Version
-            std::uint16_t version = 1;
+            std::uint16_t version = format::kCurrentVersion;
             out_.write(reinterpret_cast<const char*>(&version), sizeof(version));
 
             // Flags
