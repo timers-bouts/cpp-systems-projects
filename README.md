@@ -121,14 +121,32 @@ Example recorded stream output (hex):
 05 00 00 00 12 34 56 78 9A
 ```
 
+### ✅ 05 — Binary Telemetry Reader + Defensive Parser
+A reusable binary telemetry reading and validation module built in modern C++20.
+
+Features include:
+- Stream-based telemetry replay using std::ifstream in binary mode
+- Safe framed parsing of format: [u32 packet_size][packet_bytes...]
+- Header validation with fixed magic signature ("TLRY") and version enforcement
+- Strict truncation detection for header, size fields, and payload data
+- Clean EOF semantics via iterator-style read_next() API
+- Configurable maximum packet size to prevent oversized memory allocations
+- Custom ParseError exception for structured error handling
+- Defensive binary read helper (read_exact) to prevent partial-read corruption
+- Full manual test harness covering valid and malformed file cases
+- Modular reusable library design inside telemetry_lib/
+- Makefile-based build + standalone test execution workflow
+
+Example validated stream input (hex):
+```
+54 4C 52 59 01 00 00 00
+03 00 00 00 AA BB CC
+05 00 00 00 12 34 56 78 9A
+```
+
 ---
 
 ## Upcoming Projects
-
-### 🔜 05 — Packet Parser + Validator
-
-- Reading binary telemetry logs
-- Field decoding + checksum validation
 
 ### 🔜 06 — Telemetry Simulator (Capstone)
 
