@@ -2,7 +2,7 @@
 
 CXX      := clang++
 CXXFLAGS := -std=c++20 -Wall -Wextra -Wpedantic -O2 -g
-CPPFLAGS := -I../telemetry_lib/include
+CPPFLAGS := -Iinclude -I../telemetry_lib/include
 
 BUILD_DIR := build
 BIN_DIR   := $(BUILD_DIR)/bin

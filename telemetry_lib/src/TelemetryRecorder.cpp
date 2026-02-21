@@ -3,8 +3,8 @@
 #include <cstdint>
 #include <limits>
 #include <filesystem>
-#include <telemetry/TelemetryRecorder.h>
-#include <telemetry/TelemetryFormat.h>
+#include "telemetry/TelemetryRecorder.h"
+#include "telemetry/TelemetryFormat.h"
 
 // File format:
 // [TLRY][u16 version][u16 flags]
