@@ -2,7 +2,7 @@
 
 #include "telemetry/PacketWriter.h"
 
-namespace telemetry{
+namespace telemetry {
 
     PacketWriter::PacketWriter(PacketWriter::Endianness endianness)
         :endianness_(endianness){}
