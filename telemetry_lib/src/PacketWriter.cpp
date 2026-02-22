@@ -27,18 +27,27 @@ namespace telemetry {
 
     PacketWriter& PacketWriter::add_u32(std::uint32_t value) {
         if (endianness_ == PacketWriter::Endianness::Big) {
-            add_u8(static_cast<uint8_t>((value >> 24) & 0xFF));
-            add_u8(static_cast<uint8_t>((value >> 16) & 0xFF));
-            add_u8(static_cast<uint8_t>((value >> 8) & 0xFF));
-            add_u8(static_cast<uint8_t>(value & 0xFF));
+            add_u16(static_cast<uint16_t>((value >> 16) & 0xFFFF));
+            add_u16(static_cast<uint16_t>(value & 0xFFFF));
         } else {
-            add_u8(static_cast<uint8_t>(value & 0xFF));
-            add_u8(static_cast<uint8_t>((value >> 8) & 0xFF));
-            add_u8(static_cast<uint8_t>((value >> 16) & 0xFF));
-            add_u8(static_cast<uint8_t>((value >> 24) & 0xFF));
+            add_u16(static_cast<uint16_t>(value & 0xFFFF));
+            add_u16(static_cast<uint16_t>((value >> 16) & 0xFFFF));
+
         }
         return *this;
     }
+
+    PacketWriter& PacketWriter::add_u64(std::uint64_t value) {
+        if (endianness_ == PacketWriter::Endianness::Big) {
+            add_u32(static_cast<uint32_t>((value >> 32) & 0xFFFFFFFF));
+            add_u32(static_cast<uint32_t>(value & 0xFFFFFFFF));
+        } else {
+            add_u32(static_cast<uint32_t>(value & 0xFFFFFFFF));
+            add_u32(static_cast<uint32_t>((value >> 32) & 0xFFFFFFFF));
+        }
+
+        return *this;
+}
 
     PacketWriter& PacketWriter::add_bytes(std::span<const uint8_t> bytes)  {
         buffer_.reserve(buffer_.size() + bytes.size());

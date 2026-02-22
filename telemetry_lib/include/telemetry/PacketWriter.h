@@ -21,6 +21,7 @@ namespace telemetry {
             PacketWriter& add_u8(std::uint8_t);
             PacketWriter& add_u16(std::uint16_t);
             PacketWriter& add_u32(std::uint32_t);
+            PacketWriter& add_u64(std::uint64_t);
             PacketWriter& add_bytes(std::span<const uint8_t>);
             PacketWriter& add_string(std::string_view);
             PacketWriter& add_float(float);
