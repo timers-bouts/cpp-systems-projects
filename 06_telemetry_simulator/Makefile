@@ -2,7 +2,7 @@ CXX      := clang++
 CXXFLAGS := -std=c++20 -Wall -Wextra -Wpedantic -O2 -g
 CPPFLAGS := -Iinclude -I../telemetry_lib/include
 
-SRCS := src/TelemetryFrame.cpp src/TelemetrySimulator.cpp main.cpp
+SRCS := src/TelemetryFrame.cpp src/TelemetrySimulator.cpp main.cpp src/CRC.cpp
 OBJS := $(SRCS:.cpp=.o)
 TARGET := telemetry_simulator
 

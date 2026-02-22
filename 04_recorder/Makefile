@@ -11,7 +11,8 @@ TARGET    := $(BIN_DIR)/recorder_demo
 
 APP_SRC := main.cpp
 LIB_SRC := ../telemetry_lib/src/TelemetryRecorder.cpp \
-           ../telemetry_lib/src/PacketWriter.cpp
+           ../telemetry_lib/src/PacketWriter.cpp \
+		   ../telemetry_lib/src/CRC.cpp
 
 APP_OBJ := $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(APP_SRC))
 LIB_OBJ := $(patsubst ../telemetry_lib/src/%.cpp,$(BUILD_DIR)/telemetry_lib/src/%.o,$(LIB_SRC))

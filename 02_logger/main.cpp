@@ -1,8 +1,8 @@
-#include "Logger.h"
+#include "telemetry/Logger.h"
 #include <iostream>
 
 int main() {
-    Logger log("output.log", LogLevel::Warn);
+    telemetry::Logger log("output.log", telemetry::LogLevel::Warn);
 
     log.info("Telemetry system started");
     log.warn("Packet delay detected");

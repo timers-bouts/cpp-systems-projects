@@ -13,9 +13,6 @@ namespace telemetry_sim {
         writer.add_float(velocity_mps);
         writer.add_u32(status_flags);
 
-        std::uint32_t crc = telemetry::crc32(writer.bytes());
-        writer.add_u32(crc);
-
     };
 
 }

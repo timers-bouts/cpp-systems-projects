@@ -65,7 +65,7 @@ Written once at the beginning of a new file:
 Each packet is written as:
 
 ```text
-[u32 packet_size][packet_bytes...]
+[u32 packet_size][packet_bytes...][u32 crc]
 ```
 
 

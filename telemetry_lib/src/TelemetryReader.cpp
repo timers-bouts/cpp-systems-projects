@@ -1,6 +1,6 @@
 #include "telemetry/TelemetryReader.h"
 #include "telemetry/TelemetryFormat.h"
-#include "CRC.h"
+#include "telemetry/CRC.h"
 
 #include <array>
 #include <vector>

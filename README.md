@@ -104,7 +104,7 @@ A reusable binary telemetry recording module built in modern C++20.
 
 Features include:
 - Stream-based telemetry packet persistence using std::ofstream in binary mode
-- Safe framed recording format: [u32 packet_size][packet_bytes...]
+- Safe framed recording format: [u32 packet_size][packet_bytes...][u32 crc]
 - Support for writing multiple packets over time (continuous append recording)
 - RAII-based file ownership (open in constructor, close automatically)
 - Optional append vs truncate modes for flexible recording workflows

@@ -1,5 +1,6 @@
 #include <telemetry/TelemetryReader.h>
 #include <telemetry/TelemetryFormat.h>
+#include <telemetry/CRC.h>
 
 #include <array>
 #include <cstdint>
@@ -24,7 +25,7 @@ static void write_u16_le(std::ostream& out, std::uint16_t v) {
     out.write(reinterpret_cast<const char*>(b.data()), static_cast<std::streamsize>(b.size()));
 }
 
-static void write_u32_le(std::ostream& out, std::uint32_t v) {
+static void write_u32_le(std::ostream& out, const std::uint32_t v) {
     std::array<std::uint8_t, 4> b{
         static_cast<std::uint8_t>(v & 0xFF),
         static_cast<std::uint8_t>((v >> 8) & 0xFF),
@@ -43,12 +44,17 @@ static void write_header(std::ostream& out, std::uint16_t version, std::uint16_t
     write_u16_le(out, flags);
 }
 
+static void write_crc(std::ostream& out, const std::uint32_t crc) {
+    write_u32_le(out, crc);
+}
+
 static void write_record(std::ostream& out, const std::vector<std::uint8_t>& payload) {
-    write_u32_le(out, static_cast<std::uint32_t>(payload.size()));
+    write_u32_le(out, static_cast<std::uint32_t>(payload.size() + telemetry::format::CRC32_SIZE));
     if (!payload.empty()) {
         out.write(reinterpret_cast<const char*>(payload.data()),
                   static_cast<std::streamsize>(payload.size()));
     }
+    write_crc(out, telemetry::crc32(std::span<const uint8_t>(payload)));
 }
 
 // ------------------------------

@@ -24,7 +24,7 @@ class TelemetryRecorder {
         TelemetryRecorder& operator=(const TelemetryRecorder& recorder) = delete;
 
         // Write one framed packet:
-        // [u32 size][packet bytes...]
+        // [u32 size][packet bytes...][u32 crc]
         void write_packet(std::span<const std::uint8_t> packet_bytes);
 
         void flush();

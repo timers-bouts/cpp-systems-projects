@@ -5,10 +5,11 @@
 #include <filesystem>
 #include "telemetry/TelemetryRecorder.h"
 #include "telemetry/TelemetryFormat.h"
+#include "telemetry/CRC.h"
 
 // File format:
 // [TLRY][u16 version][u16 flags]
-// Repeated records: [u32 size][payload bytes...]
+// Repeated records: [u32 size][payload bytes...][u32 crc]
 
 namespace telemetry {
 
@@ -57,18 +58,25 @@ namespace telemetry {
     }
 
     void TelemetryRecorder::write_packet(std::span<const std::uint8_t> packet_bytes) {
-        if (packet_bytes.size() > std::numeric_limits<std::uint32_t>::max()) {
+
+        // Calculate packet size (inlcuding CRC) and the CRC value itself
+        std::size_t size = packet_bytes.size() + format::CRC32_SIZE;
+        std::uint32_t crc = crc32(packet_bytes);
+        
+        if (size > std::numeric_limits<std::uint32_t>::max()) {
             throw std::runtime_error("Packet size exceeds limits for uint32_t");
         }
-        std::uint32_t size = static_cast<std::uint32_t>(packet_bytes.size());
+
         try {
             // Write the size of the payload
-            write_u32_le(size);
+            write_u32_le(static_cast<std::uint32_t>(size));
             // Write the actual payload
             out_.write(reinterpret_cast<const char*>(packet_bytes.data()), static_cast<std::streamsize>(packet_bytes.size()));
+            // Write the CRC at the end of the payload
+            write_u32_le(crc);
         }
         catch (const std::ios_base::failure&) {
-            throw std::runtime_error("TelemetryRecorder: write failed (payload)");
+            throw std::runtime_error("TelemetryRecorder: write failed");
         } 
     }
 
