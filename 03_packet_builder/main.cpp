@@ -5,9 +5,9 @@
 
 #include "telemetry/PacketWriter.h"
 
-void print_packet(const std::span<const uint8_t>& bytes) {
+void print_packet(const std::span<const std::uint8_t>& bytes) {
     std::cout << std::hex; // Change stdout to write in hex
-    for (uint8_t byte : bytes) {
+    for (std::uint8_t byte : bytes) {
         std::cout << std::setw(2)
                 << std::uppercase
                 << std::setfill('0')
