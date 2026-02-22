@@ -1,5 +1,4 @@
-#include "TelemetryFrame.h"
-#include "telemetry/CRC.h"
+#include "telemetry_sim/TelemetryFrame.h"
 
 namespace telemetry_sim {
 

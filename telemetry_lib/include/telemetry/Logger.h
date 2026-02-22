@@ -42,6 +42,6 @@ namespace telemetry {
             static const char* to_string(LogLevel level);
     };
 
-}
+} // namespace telemetry
 
 

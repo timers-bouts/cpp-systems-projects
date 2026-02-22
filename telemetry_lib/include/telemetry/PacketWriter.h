@@ -34,4 +34,4 @@ namespace telemetry {
             std::vector<std::uint8_t> buffer_;
             Endianness endianness_;            
     };
-}
+} // namespace telemetry

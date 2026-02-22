@@ -33,4 +33,4 @@ class TelemetryRecorder {
         std::ofstream out_;
         void write_u32_le(std::uint32_t);
     };
-}
+} // namespace telemetry

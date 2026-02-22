@@ -13,12 +13,16 @@ namespace telemetry_sim {
             struct Config {
                 uint64_t start_time_ms = 0;   // simulation start timestamp
                 uint64_t step_ms = 100;       // time per frame in ms
-                size_t packet_count = 1000;   // number of packets to generate
+                size_t packet_count = 20;   // number of packets to generate
                 uint32_t seed = 42;           // RNG seed for deterministic output
+                uint64_t end_time_ms = start_time_ms + packet_count * step_ms;
             };
 
             // Constructor: takes configuration and a recorder instance
             TelemetrySimulator(const Config& config, telemetry::TelemetryRecorder& recorder);
+
+            // Destructor
+            ~TelemetrySimulator() = default;
 
             // Run the simulation: generates frames, serializes, and records them
             void run();
@@ -42,8 +46,18 @@ namespace telemetry_sim {
             float position_y_;
             float velocity_mps_;
             float temperature_c_;
+            float base_temperature_;
+            float temperature_wave_angle_;
+            float period_seconds_;
+            float angular_velocity_;
+            float temperature_wave_amplitude_;
             float voltage_v_;
-    
+            float voltage_decay_;
+            std::normal_distribution<float> noise_position_;
+            std::normal_distribution<float> noise_velocity_;
+            std::normal_distribution<float> noise_temperature_;
+            std::normal_distribution<float> noise_voltage_;
+
     };
 
-}
+} // namespace telemetry_sim

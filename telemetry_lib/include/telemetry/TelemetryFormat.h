@@ -27,4 +27,4 @@ static_assert(kRecordSizeFieldBytes == 4,
 
 constexpr size_t CRC32_SIZE = 4; // bytes
 
-}
+} // namespace telemetry::format
