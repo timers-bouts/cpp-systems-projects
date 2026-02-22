@@ -25,4 +25,7 @@ inline constexpr std::size_t kRecordSizeFieldBytes = sizeof(std::uint32_t);
 static_assert(kRecordSizeFieldBytes == 4,
               "Record size field must remain 4 bytes in format version 1");
 
-} // namespace telemetry::format
+constexpr size_t CRC32_SIZE = 4; // bytes
+
+
+}
