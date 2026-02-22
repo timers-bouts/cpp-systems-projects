@@ -22,7 +22,6 @@ namespace telemetry_sim {
         // This function is small and explicit: each field is written in order.
         void serialize(telemetry::PacketWriter& writer) const;
 
-        std::uint32_t crc32(const std::span<const uint8_t>&);
     };
 
 }

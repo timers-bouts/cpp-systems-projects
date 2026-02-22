@@ -68,4 +68,4 @@ namespace telemetry {
             Options opt_;
     };
 
-} // namespace telemetry
+}

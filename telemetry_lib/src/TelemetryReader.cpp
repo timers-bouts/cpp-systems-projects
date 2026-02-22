@@ -1,5 +1,6 @@
 #include "telemetry/TelemetryReader.h"
 #include "telemetry/TelemetryFormat.h"
+#include "CRC.h"
 
 #include <array>
 #include <vector>
@@ -67,7 +68,7 @@ namespace telemetry {
     }
 
     bool TelemetryReader::read_next(std::vector<std::uint8_t>& out_packet) {
-        // Try to read the size of the next payload
+        // Try to read the size of the next payload. Return false if EOF
         std::array<std::uint8_t, format::kRecordSizeFieldBytes> packet_size{};
         if (!read_exact(file_, std::span<std::uint8_t>(packet_size))) {
             return false;
@@ -85,8 +86,12 @@ namespace telemetry {
             throw ParseError("packet size " + std::to_string(size) + " exceeds max_packet_size");
         }
 
-        //Prepare out_packet for reading payload
-        out_packet.resize(size);
+        //Prepare out_packet for reading payload (minus CRC bits)
+        if (size < format::CRC32_SIZE) {
+            throw ParseError("packet size too small for CRC");
+        }
+        out_packet.resize(size - format::CRC32_SIZE);
+
 
         // Read payload into out_packet (read_exact will throw error if less than 'size' bytes are read)
         if (!read_exact(file_, std::span<std::uint8_t>(out_packet))) {
@@ -94,6 +99,16 @@ namespace telemetry {
             throw ParseError("truncated packet payload");
         }
 
+        // Read the CRC bits and check against the actual CRC
+        std::uint32_t crc_computed = crc32(std::span<std::uint8_t>(out_packet)); // CRC Computed from packet payload
+
+        uint32_t crc_stored = read_u32_le(file_); // CRC stored at the end of the payload
+        
+        
+        if (crc_computed != crc_stored) {
+            throw ParseError("incorrect CRC");
+        }
+        
         return true;
 
     }
