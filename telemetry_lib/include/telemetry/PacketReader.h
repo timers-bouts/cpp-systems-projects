@@ -25,6 +25,8 @@ namespace telemetry {
         /// @param endianness Endianness of the serialized data (default Little).
         explicit PacketReader(std::span<const std::uint8_t> buffer,
                               Endianness endianness = Endianness::Little) noexcept;
+        
+        ~PacketReader() = default;
 
         /// @brief Returns the number of bytes remaining to read.
         [[nodiscard]] std::size_t remaining() const noexcept;
@@ -63,4 +65,4 @@ namespace telemetry {
         Endianness endianness_;
     };
 
-}
+} // namespace telemetry
