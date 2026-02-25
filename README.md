@@ -25,10 +25,11 @@ cpp-systems-projects/
   telemetry_lib/        Shared reusable telemetry modules
   01_converter/         CLI warmup
   02_logger/            Reusable logging utility
-  03_packet_builder/    PacketWriter demo app
+  03_packet_writer/    PacketWriter demo app
   04_recorder/          Binary telemetry recorder demo app
-  05_packet_parser/         (upcoming)
-  06_telemetry_simulator/   (upcoming)
+  05_reader/         
+  06_packet_reader/
+  07_telemetry_simulator
 
 ```
 
