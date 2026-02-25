@@ -27,9 +27,9 @@ cpp-systems-projects/
   02_logger/            Reusable logging utility
   03_packet_writer/    PacketWriter demo app
   04_recorder/          Binary telemetry recorder demo app
-  05_reader/         
-  06_packet_reader/
-  07_telemetry_simulator
+  05_reader/            Binary telemetry reader
+  06_packet_reader/     PacketReader
+  07_telemetry_simulator  Simulator demo app
 
 ```
 
