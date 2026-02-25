@@ -144,11 +144,64 @@ Example validated stream input (hex):
 05 00 00 00 12 34 56 78 9A
 ```
 
+### ✅ 06 — PacketReader: Binary Telemetry Deserialization
+A lightweight, reusable packet deserialization helper built in modern C++20, designed to complement PacketWriter for robust telemetry parsing.
+
+Features include:
+
+- Wraps a contiguous byte buffer (std::span<const uint8_t>) for sequential reads
+- Supports reading u8, u16, u32, u64, float, and arbitrary byte spans
+- Handles Big Endian or Little Endian multi-byte fields with configurable endianness
+- Bounds-checked reads with std::out_of_range exceptions for safety
+
+Utility methods:
+
+- remaining() — number of unread bytes
+- empty() — check if all bytes have been consumed
+- skip(count) — advance buffer without reading
+- clear() — reset buffer to empty
+- Simple, reusable API for implementing structured telemetry deserialization
+- Fully compatible with TelemetryFrame::deserialize(PacketReader&) for round-trip frame     reconstruction
+- Clean and modular design, ready to integrate with telemetry replay or test harnesses
+
+Example usage:
+
+```text
+PacketReader reader(pw.bytes(), PacketReader::Endianness::Big);
+TelemetryFrame frame;
+frame.deserialize(reader);
+print_frame(frame);
+```
+
+### ✅ 07 — Mini Telemetry Simulator
+A configurable telemetry frame generator for testing serialization and deserialization pipelines.
+
+Features include:
+
+- Generates realistic telemetry frames with fields:
+- Timestamp, temperature, voltage, position, velocity, status flags
+- Supports deterministic evolution with configurable step size and duration
+- Adds realistic drift and noise to all fields for simulation fidelity
+- Serializes frames using TelemetryFrame::serialize(PacketWriter&)
+- Writes frames to TelemetryRecorder for safe disk persistence, including CRC32 validation
+- Optional in-memory storage of frames for immediate access or testing
+- Easily extensible for new telemetry channels or packet types
+- Designed for integration with PacketReader and TelemetryFrame::deserialize to complete a full replay pipeline
+- Clean, modular, and self-contained; ideal for unit tests or demonstration of telemetry systems
+
+Example simulation loop:
+
+```cpp
+TelemetrySimulator sim(config, recorder);
+sim.run(); // generates frames → serializes → records
+auto frames = sim.get_frames(); // optional in-memory access for testing
+```
+
 ---
 
 ## Upcoming Projects
 
-### 🔜 06 — Telemetry Simulator (Capstone)
+### Capstone Simulator
 
 A full mini telemetry system:
 

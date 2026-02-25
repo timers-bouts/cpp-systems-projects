@@ -1,4 +1,5 @@
 #include "telemetry/PacketWriter.h"
+#include "telemetry/PacketReader.h"
 #include "telemetry_sim/TelemetrySimulator.h"
 
 namespace telemetry_sim {
@@ -52,6 +53,10 @@ namespace telemetry_sim {
             frame.voltage_v = voltage_v_ + noise_voltage_(rng_);
 
             return frame;
+        }
+
+        std::span<const TelemetryFrame> TelemetrySimulator::get_frames() const {
+            return std::span<const TelemetryFrame>(frames_);
         }
 
         void TelemetrySimulator::run() {

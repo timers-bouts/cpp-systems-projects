@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <random>
+#include <vector>
+#include <span>
 #include "TelemetryFrame.h"
 #include "telemetry/TelemetryRecorder.h"
 
@@ -26,6 +28,8 @@ namespace telemetry_sim {
 
             // Run the simulation: generates frames, serializes, and records them
             void run();
+
+            std::span<const TelemetryFrame> get_frames() const;
 
         private:
             // Generate a single frame based on current simulator state
@@ -57,6 +61,7 @@ namespace telemetry_sim {
             std::normal_distribution<float> noise_velocity_;
             std::normal_distribution<float> noise_temperature_;
             std::normal_distribution<float> noise_voltage_;
+            std::vector<TelemetryFrame> frames_;
 
     };
 

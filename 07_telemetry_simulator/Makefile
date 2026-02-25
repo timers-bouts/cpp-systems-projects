@@ -12,11 +12,12 @@ TARGET    := $(BIN_DIR)/simulator_demo
 APP_SRC := main.cpp
 # Explicit list of all source files to compile
 LIB_SRC := ../telemetry_lib/src/TelemetryRecorder.cpp \
-           ../telemetry_lib/src/PacketWriter.cpp \
            ../telemetry_lib/src/TelemetryReader.cpp \
+		    ../telemetry_lib/src/PacketWriter.cpp \
+			../telemetry_lib/src/PacketReader.cpp \
            ../telemetry_lib/src/CRC.cpp \
            src/TelemetrySimulator.cpp \
-           src/TelemetryFrame.cpp
+           src/TelemetryFrame.cpp \
 
 APP_OBJ := $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(APP_SRC))
 LIB_OBJ := \

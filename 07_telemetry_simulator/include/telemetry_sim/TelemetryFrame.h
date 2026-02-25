@@ -1,9 +1,11 @@
 #pragma once
 
 #include <cstdint>
-#include "telemetry/PacketWriter.h"
 #include <array>
 #include <vector>
+#include "telemetry/PacketWriter.h"
+#include "telemetry/PacketReader.h"
+
 
 namespace telemetry_sim {
 
@@ -21,6 +23,9 @@ namespace telemetry_sim {
         // Serialize this frame into a PacketWriter payload.
         // This function is small and explicit: each field is written in order.
         void serialize(telemetry::PacketWriter& writer) const;
+
+        // Desieralize the frame to assign struct members from a packet
+        void deserialize(telemetry::PacketReader& reader);
 
     };
 

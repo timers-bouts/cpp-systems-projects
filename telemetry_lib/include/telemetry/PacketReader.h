@@ -22,9 +22,9 @@ namespace telemetry {
 
         /// @brief Construct a PacketReader over a contiguous buffer.
         /// @param buffer Serialized packet data.
-        /// @param endianness Endianness of the serialized data (default Little).
+        /// @param endianness Endianness of the serialized data (default Big to match PacketWriter).
         explicit PacketReader(std::span<const std::uint8_t> buffer,
-                              Endianness endianness = Endianness::Little) noexcept;
+                              Endianness endianness = Endianness::Big) noexcept;
         
         ~PacketReader() = default;
 

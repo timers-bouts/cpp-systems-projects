@@ -9,17 +9,16 @@
 #include "telemetry/TelemetryRecorder.h"
 #include "telemetry_sim/TelemetryFrame.h"
 
-void print_packet(const std::span<const std::uint8_t>& bytes) {
-    std::cout << std::hex; // Change stdout to write in hex
-    for (std::uint8_t byte : bytes) {
-        std::cout << std::setw(2)
-                << std::uppercase
-                << std::setfill('0')
-                << static_cast<int>(byte)
-                << " ";
-    }
-    std::cout << "\n";
-    std::cout << std::dec; // change stdout back to decimal mode
+void print_frame(telemetry_sim::TelemetryFrame& frame) {
+    std::cout << "-------------Telemetry Readings-------------\n";
+    std::cout << "Timestamp: " << frame.timestamp_ms << "\n";
+    std::cout << "Temperature: " << frame.temperature_c << " degress Celsius\n";
+    std::cout << "Voltage: " << frame.voltage_v << " Volts\n";
+    std::cout << "Position X: " << frame.position_x << " Meters\n";
+    std::cout << "Position Y: " << frame.position_y << " Meters\n";
+    std::cout << "Velocity: " << frame.velocity_mps << " Meters per Second\n";
+    std::cout << "Status Flags: " << frame.status_flags << "\n";
+    std::cout << "-------------End of Readings-------------\n\n\n";
 
 }
 
@@ -27,22 +26,17 @@ int main() {
 
     telemetry_sim::TelemetrySimulator::Config config;
     config.packet_count = 20;
-    telemetry::TelemetryRecorder recorder("test.bin", telemetry::TelemetryRecorder::OpenMode::Truncate);
+    telemetry::TelemetryRecorder recorder("simulation.bin", telemetry::TelemetryRecorder::OpenMode::Truncate);
     telemetry_sim::TelemetrySimulator simulator(config, recorder);
     simulator.run();
-telemetry::TelemetryReader reader("test.bin");
-std::vector<uint8_t> pkt;
-while (reader.read_next(pkt)) {
-    telemetry::PacketReader pr(pkt); // hypothetical PacketReader
-    TelemetryFrame frame;
-    frame.deserialize(pr);           // you’d implement this method
-    std::cout << frame.timestamp_ms << " "
-              << frame.temperature_c << " "
-              << frame.voltage_v << " "
-              << frame.position_x << " "
-              << frame.position_y << " "
-              << frame.velocity_mps << "\n";
-}
+    auto reader = telemetry::TelemetryReader::open("simulation.bin");
+    std::vector<uint8_t> payload;
+    while (reader.read_next(payload)) {
+        telemetry_sim::TelemetryFrame frame;
+        telemetry::PacketReader pr(payload);
+        frame.deserialize(pr);
+        print_frame(frame);
+    }
 
     return 0;
 }
