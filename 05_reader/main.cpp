@@ -90,7 +90,7 @@ static bool expect_parse_error(Fn&& fn, std::string* out_msg = nullptr) {
 // Tests
 // ------------------------------
 
-static void test_happy_path_dump(TestResult& tr, const fs::path& dir) {
+static void test_happy_path_dump(TestResult& tr, const fs::path& dir, telemetry::Logger& logger) {
     const std::string name = "happy_path_reads_all_packets";
     const fs::path file = dir / "happy.bin";
 
@@ -104,7 +104,7 @@ static void test_happy_path_dump(TestResult& tr, const fs::path& dir) {
     }
 
     try {
-        auto r = telemetry::TelemetryReader::open(file);
+        auto r = telemetry::TelemetryReader::open(file, logger);
         std::vector<std::uint8_t> pkt;
 
         int count = 0;
@@ -129,7 +129,7 @@ static void test_happy_path_dump(TestResult& tr, const fs::path& dir) {
     }
 }
 
-static void test_clean_eof_behavior(TestResult& tr, const fs::path& dir) {
+static void test_clean_eof_behavior(TestResult& tr, const fs::path& dir, telemetry::Logger& logger) {
     const std::string name = "clean_eof_returns_false_not_throw";
     const fs::path file = dir / "clean_eof.bin";
 
@@ -140,7 +140,7 @@ static void test_clean_eof_behavior(TestResult& tr, const fs::path& dir) {
     }
 
     try {
-        auto r = telemetry::TelemetryReader::open(file);
+        auto r = telemetry::TelemetryReader::open(file, logger);
         std::vector<std::uint8_t> pkt;
 
         bool first = r.read_next(pkt);
@@ -166,7 +166,7 @@ static void test_clean_eof_behavior(TestResult& tr, const fs::path& dir) {
     }
 }
 
-static void test_truncated_header(TestResult& tr, const fs::path& dir) {
+static void test_truncated_header(TestResult& tr, const fs::path& dir, telemetry::Logger& logger) {
     const std::string name = "truncated_header_rejected";
     const fs::path file = dir / "truncated_header.bin";
 
@@ -179,7 +179,7 @@ static void test_truncated_header(TestResult& tr, const fs::path& dir) {
 
     std::string msg;
     const bool threw = expect_parse_error([&] {
-        (void)telemetry::TelemetryReader::open(file);
+        (void)telemetry::TelemetryReader::open(file, logger);
     }, &msg);
 
     if (!threw) {
@@ -189,7 +189,7 @@ static void test_truncated_header(TestResult& tr, const fs::path& dir) {
     pass(tr, name);
 }
 
-static void test_invalid_magic(TestResult& tr, const fs::path& dir) {
+static void test_invalid_magic(TestResult& tr, const fs::path& dir, telemetry::Logger& logger) {
     const std::string name = "invalid_magic_rejected";
     const fs::path file = dir / "bad_magic.bin";
 
@@ -203,7 +203,7 @@ static void test_invalid_magic(TestResult& tr, const fs::path& dir) {
     }
 
     const bool threw = expect_parse_error([&] {
-        (void)telemetry::TelemetryReader::open(file);
+        (void)telemetry::TelemetryReader::open(file, logger);
     });
 
     if (!threw) {
@@ -213,7 +213,7 @@ static void test_invalid_magic(TestResult& tr, const fs::path& dir) {
     pass(tr, name);
 }
 
-static void test_unsupported_version(TestResult& tr, const fs::path& dir) {
+static void test_unsupported_version(TestResult& tr, const fs::path& dir, telemetry::Logger& logger) {
     const std::string name = "unsupported_version_rejected";
     const fs::path file = dir / "bad_version.bin";
 
@@ -223,7 +223,7 @@ static void test_unsupported_version(TestResult& tr, const fs::path& dir) {
     }
 
     const bool threw = expect_parse_error([&] {
-        (void)telemetry::TelemetryReader::open(file);
+        (void)telemetry::TelemetryReader::open(file, logger);
     });
 
     if (!threw) {
@@ -233,7 +233,7 @@ static void test_unsupported_version(TestResult& tr, const fs::path& dir) {
     pass(tr, name);
 }
 
-static void test_truncated_size_field(TestResult& tr, const fs::path& dir) {
+static void test_truncated_size_field(TestResult& tr, const fs::path& dir, telemetry::Logger& logger) {
     const std::string name = "truncated_size_field_throws";
     const fs::path file = dir / "truncated_size.bin";
 
@@ -246,7 +246,7 @@ static void test_truncated_size_field(TestResult& tr, const fs::path& dir) {
     }
 
     try {
-        auto r = telemetry::TelemetryReader::open(file);
+        auto r = telemetry::TelemetryReader::open(file, logger);
         std::vector<std::uint8_t> pkt;
         (void)r.read_next(pkt);
         fail(tr, name, "expected ParseError, got no exception");
@@ -257,7 +257,7 @@ static void test_truncated_size_field(TestResult& tr, const fs::path& dir) {
     }
 }
 
-static void test_truncated_payload(TestResult& tr, const fs::path& dir) {
+static void test_truncated_payload(TestResult& tr, const fs::path& dir, telemetry::Logger& logger) {
     const std::string name = "truncated_payload_throws";
     const fs::path file = dir / "truncated_payload.bin";
 
@@ -272,7 +272,7 @@ static void test_truncated_payload(TestResult& tr, const fs::path& dir) {
     }
 
     try {
-        auto r = telemetry::TelemetryReader::open(file);
+        auto r = telemetry::TelemetryReader::open(file, logger);
         std::vector<std::uint8_t> pkt;
         (void)r.read_next(pkt);
         fail(tr, name, "expected ParseError, got no exception");
@@ -283,7 +283,8 @@ static void test_truncated_payload(TestResult& tr, const fs::path& dir) {
     }
 }
 
-static void test_oversized_packet_rejected(TestResult& tr, const fs::path& dir) {
+static void test_oversized_packet_rejected(TestResult& tr, const fs::path& dir,
+                                            telemetry::Logger& logger) {
     const std::string name = "oversized_packet_rejected_before_alloc";
     const fs::path file = dir / "oversized.bin";
 
@@ -299,7 +300,7 @@ static void test_oversized_packet_rejected(TestResult& tr, const fs::path& dir) 
         telemetry::TelemetryReader::Options opt;
         opt.max_packet_size = 64 * 1024;
 
-        auto r = telemetry::TelemetryReader::open(file, opt);
+        auto r = telemetry::TelemetryReader::open(file, opt, logger);
         std::vector<std::uint8_t> pkt;
         (void)r.read_next(pkt);
         fail(tr, name, "expected ParseError, got no exception");
@@ -310,7 +311,8 @@ static void test_oversized_packet_rejected(TestResult& tr, const fs::path& dir) 
     }
 }
 
-static void test_zero_size_packet_rejected(TestResult& tr, const fs::path& dir) {
+static void test_zero_size_packet_rejected(TestResult& tr, const fs::path& dir,
+                                            telemetry::Logger& logger) {
     const std::string name = "zero_size_packet_rejected";
     const fs::path file = dir / "zero_size.bin";
 
@@ -321,7 +323,7 @@ static void test_zero_size_packet_rejected(TestResult& tr, const fs::path& dir) 
     }
 
     try {
-        auto r = telemetry::TelemetryReader::open(file);
+        auto r = telemetry::TelemetryReader::open(file, logger);
         std::vector<std::uint8_t> pkt;
         (void)r.read_next(pkt);
         fail(tr, name, "expected ParseError, got no exception");
@@ -337,6 +339,7 @@ static void test_zero_size_packet_rejected(TestResult& tr, const fs::path& dir) 
 // ------------------------------
 int main() {
     TestResult tr;
+    telemetry::Logger logger("test.log", telemetry::LogLevel::Info, false);
 
     const fs::path dir = fs::path("test_artifacts");
     std::error_code ec;
@@ -345,15 +348,15 @@ int main() {
 
     std::cout << "Running TelemetryReader tests...\n\n";
 
-    test_happy_path_dump(tr, dir);
-    test_clean_eof_behavior(tr, dir);
-    test_truncated_header(tr, dir);
-    test_invalid_magic(tr, dir);
-    test_unsupported_version(tr, dir);
-    test_truncated_size_field(tr, dir);
-    test_truncated_payload(tr, dir);
-    test_oversized_packet_rejected(tr, dir);
-    test_zero_size_packet_rejected(tr, dir);
+    test_happy_path_dump(tr, dir, logger);
+    test_clean_eof_behavior(tr, dir, logger);
+    test_truncated_header(tr, dir, logger);
+    test_invalid_magic(tr, dir, logger);
+    test_unsupported_version(tr, dir, logger);
+    test_truncated_size_field(tr, dir, logger);
+    test_truncated_payload(tr, dir, logger);
+    test_oversized_packet_rejected(tr, dir, logger);
+    test_zero_size_packet_rejected(tr, dir, logger);
 
     std::cout << "\nSummary: " << tr.passed << " passed, " << tr.failed << " failed\n";
     return (tr.failed == 0) ? 0 : 1;

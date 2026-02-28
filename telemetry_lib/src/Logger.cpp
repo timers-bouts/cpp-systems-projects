@@ -46,13 +46,17 @@ namespace telemetry {
         std::ostringstream oss;
         oss << "[" << to_string(level) << "] " << timestamp << " " << message << "\n";
         std::string line = oss.str();
-        std::cout << line;
         file << line;
+        if (mirror_to_console_) {
+            std::cout << line;
+        }
     }
 
-    Logger::Logger(const std::string& filename, LogLevel minLevel) 
+    Logger::Logger(const std::string& filename, LogLevel minLevel, bool mirrorToConsole) 
 
-    : file(filename, std::ios::app),  min_level(minLevel)
+    : file(filename, std::ios::app),
+      min_level(minLevel),
+      mirror_to_console_(mirrorToConsole)
 
     {
         if (!file.is_open()) {

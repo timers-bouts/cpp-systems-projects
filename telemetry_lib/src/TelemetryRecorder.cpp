@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <limits>
 #include <filesystem>
+#include <sstream>
 #include "telemetry/TelemetryRecorder.h"
 #include "telemetry/TelemetryFormat.h"
 #include "telemetry/CRC.h"
@@ -13,7 +14,11 @@
 
 namespace telemetry {
 
-    TelemetryRecorder::TelemetryRecorder(const std::filesystem::path& path, OpenMode mode) {
+    TelemetryRecorder::TelemetryRecorder(const std::filesystem::path& path,
+                        telemetry::Logger& logger,
+                        OpenMode mode = OpenMode::Truncate)
+        : logger_(logger)
+        {
 
         bool empty = !std::filesystem::exists(path) || std::filesystem::file_size(path) == 0;
 
@@ -24,8 +29,11 @@ namespace telemetry {
         }
 
         if (!out_.is_open()) {
+            logger_.error("TelemetryRecorder failed to open file: " + path.string());
             throw std::runtime_error("Telemetry Recorder: Failed to open file: " + path.string());
         }
+
+        logger_.info("TelemetryRecorder opened file: " + path.string());
 
         // Turn on fail and bad bits for error detection
         out_.exceptions(std::ios::failbit | std::ios::badbit);
@@ -43,11 +51,20 @@ namespace telemetry {
             // Flags
             std::uint16_t flags = 0;
             out_.write(reinterpret_cast<const char*>(&flags), sizeof(flags));
+
+            logger_.info("TelemetryRecorder wrote file header (magic/version/flags)");
+        } else {
+            logger_.info("TelemetryRecorder appending to existing file");
         }
 
     }
 
-    TelemetryRecorder::~TelemetryRecorder() = default;
+    TelemetryRecorder::~TelemetryRecorder() {
+        if (out_.is_open()) {
+            logger_.info("TelemetryRecorder closing file");
+            out_.close();
+        }
+    }
 
     void TelemetryRecorder::write_u32_le(std::uint32_t value) {
         // Write using little endian
@@ -64,6 +81,7 @@ namespace telemetry {
         std::uint32_t crc = crc32(packet_bytes);
         
         if (size > std::numeric_limits<std::uint32_t>::max()) {
+            logger_.error("TelemetryRecorder packet size exceeds uint32_t limit");
             throw std::runtime_error("Packet size exceeds limits for uint32_t");
         }
 
@@ -74,14 +92,26 @@ namespace telemetry {
             out_.write(reinterpret_cast<const char*>(packet_bytes.data()), static_cast<std::streamsize>(packet_bytes.size()));
             // Write the CRC at the end of the payload
             write_u32_le(crc);
+
+            std::ostringstream oss;
+            oss << std::hex << std::uppercase << crc;
+            logger_.info(
+                "TelemetryRecorder wrote packet | payload=" +
+                std::to_string(packet_bytes.size()) +
+                " bytes | crc=0x" + oss.str()
+            );
+
+
         }
         catch (const std::ios_base::failure&) {
+            logger_.error("TelemetryRecorder write failed (I/O exception)");
             throw std::runtime_error("TelemetryRecorder: write failed");
         } 
     }
 
     void TelemetryRecorder::flush() {
         out_.flush();
+        logger_.info("TelemetryRecorder flushed output stream");
     }
 
 }

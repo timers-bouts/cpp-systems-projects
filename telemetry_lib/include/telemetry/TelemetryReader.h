@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include <vector>
 
+#include "telemetry/Logger.h"
+
 namespace telemetry {
 
     // Format/parse errors (bad magic, truncated file, bad sizes, etc.)
@@ -21,15 +23,19 @@ namespace telemetry {
                 std::size_t max_packet_size = 64 * 1024; // defensive cap (64 KiB)
             };
 
-        // Open file + validate header. Throws ParseError on invalid format.
-            static TelemetryReader open(const std::filesystem::path& path);
-            static TelemetryReader open(const std::filesystem::path& path, Options opt);
+            // Open file + validate header. Throws ParseError on invalid format.
+            static TelemetryReader open(const std::filesystem::path& path,
+                                        telemetry::Logger& logger);
+
+            static TelemetryReader open(const std::filesystem::path& path,
+                                        Options opt,
+                                        telemetry::Logger& logger);
 
             TelemetryReader(const TelemetryReader&) = delete;
             TelemetryReader& operator=(const TelemetryReader&) = delete;
 
             TelemetryReader(TelemetryReader&&) noexcept = default;
-            TelemetryReader& operator=(TelemetryReader&&) noexcept = default;
+            TelemetryReader& operator=(TelemetryReader&&) noexcept = delete;
 
             ~TelemetryReader() = default;
 
@@ -51,7 +57,8 @@ namespace telemetry {
             TelemetryReader(std::ifstream file,
                             std::uint16_t version,
                             std::uint16_t flags,
-                            Options opt);
+                            Options opt,
+                            telemetry::Logger& logger);
 
             // ---- Internal helpers (implemented in .cpp) ----
             // Reads exactly buf.size() bytes.
@@ -66,6 +73,8 @@ namespace telemetry {
             std::uint16_t version_{0};
             std::uint16_t flags_{0};
             Options opt_;
+            telemetry::Logger& logger_;
+
     };
 
 } // namespace telemetry

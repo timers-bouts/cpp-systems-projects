@@ -5,6 +5,8 @@
 #include <fstream>
 #include <span>
 
+#include "telemetry/Logger.h"
+
 namespace telemetry {
 
 class TelemetryRecorder {
@@ -15,7 +17,9 @@ class TelemetryRecorder {
         };
 
         TelemetryRecorder(const std::filesystem::path& path,
-                        OpenMode mode = OpenMode::Truncate);
+                        telemetry::Logger& logger,
+                        OpenMode mode);
+
 
         ~TelemetryRecorder();
 
@@ -31,6 +35,7 @@ class TelemetryRecorder {
 
     private:
         std::ofstream out_;
+        telemetry::Logger& logger_;
         void write_u32_le(std::uint32_t);
     };
 } // namespace telemetry

@@ -6,7 +6,8 @@ It is the next step in my telemetry portfolio series, building on previous modul
 
 This module forms the simulation layer of a complete telemetry pipeline:
 
-- Project 3: Packet serialization (`PacketWriter`)  
+- Project 2: Logger
+- Project 3: Packet serialization (`PacketWriter`)
 - Project 4: Binary stream persistence (`TelemetryRecorder`)  
 - Project 5: Binary packet replay + validation (`TelemetryReader`)  
 - Project 6: Endian-aware byte deserialization (`PacketReader`)  
@@ -25,7 +26,8 @@ The `TelemetrySimulator` module supports:
 - Deterministic output for reproducible simulations  
 - Serialization of frames via `TelemetryFrame::serialize(PacketWriter&)`  
 - Safe recording of frames using `TelemetryRecorder` with CRC32 validation  
-- Optional in-memory frame storage for immediate access or testing  
+- Optional in-memory frame storage for immediate access or testing 
+- Structured logging integration 
 - Integration with `PacketReader` and `TelemetryFrame::deserialize` for round-trip validation  
 
 This module is designed to be:
@@ -121,13 +123,23 @@ This provides end-to-end validation of:
 The simulator is implemented as part of the shared telemetry library:
 
 ```text
-telemetry_lib/
-  include/telemetry/
-    TelemetrySimulator.h
-    TelemetryFrame.h
-  src/
-    TelemetrySimulator.cpp
-    TelemetryFrame.cpp
+└── telemetry_lib
+    ├── include
+    │   └── telemetry
+    │       ├── CRC.h
+    │       ├── Logger.h
+    │       ├── PacketReader.h
+    │       ├── PacketWriter.h
+    │       ├── TelemetryFormat.h
+    │       ├── TelemetryReader.h
+    │       └── TelemetryRecorder.h
+    └── src
+        ├── CRC.cpp
+        ├── Logger.cpp
+        ├── PacketReader.cpp
+        ├── PacketWriter.cpp
+        ├── TelemetryReader.cpp
+        └── TelemetryRecorder.cpp
 ```
 
 Simulation configuration is kept separate from the core frame and recorder modules for modularity.

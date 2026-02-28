@@ -15,6 +15,7 @@ LIB_SRC := ../telemetry_lib/src/TelemetryRecorder.cpp \
            ../telemetry_lib/src/TelemetryReader.cpp \
 		    ../telemetry_lib/src/PacketWriter.cpp \
 			../telemetry_lib/src/PacketReader.cpp \
+			../telemetry_lib/src/Logger.cpp \
            ../telemetry_lib/src/CRC.cpp \
            src/TelemetrySimulator.cpp \
            src/TelemetryFrame.cpp \

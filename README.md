@@ -1,20 +1,21 @@
-# C++ Systems Projects (Telemetry Prep Series)
+# C++ Systems Projects — Telemetry Prep Series
 
 This repository contains a sequence of small, focused C++ projects designed to
-build practical systems-programming skills in modern C++.
+build **practical systems-programming skills** in modern C++ (C++20).
 
-The goal of this series is to develop strong foundations in:
+The series demonstrates:
 
-- Modern C++ syntax and idioms (C++20)
-- Object-oriented design
+- Modern C++ syntax and idioms
+- Object-oriented design and encapsulation
 - RAII and resource management
-- Binary-safe data handling
-- File I/O and serialization
-- Modular multi-file project structure
+- Binary-safe data handling and serialization
+- File I/O and structured streaming
+- Modular, reusable multi-file project structure
+- Defensive programming for embedded-style telemetry pipelines
 
-These projects serve as stepping stones toward a larger capstone project:
+The ultimate goal of this portfolio is a **resume-ready telemetry capstone project**:
 
-> **Telemetry Packet Builder + Recorder + Parser (Resume Project)**
+> **Telemetry Packet Builder + Recorder + Parser + Simulator**
 
 ---
 
@@ -22,28 +23,37 @@ These projects serve as stepping stones toward a larger capstone project:
 
 ```text
 cpp-systems-projects/
-  telemetry_lib/        Shared reusable telemetry modules
-  01_converter/         CLI warmup
-  02_logger/            Reusable logging utility
-  03_packet_writer/    PacketWriter demo app
-  04_recorder/          Binary telemetry recorder demo app
-  05_reader/            Binary telemetry reader
-  06_packet_reader/     PacketReader
-  07_telemetry_simulator  Simulator demo app
-
+├── telemetry_lib/ Shared reusable telemetry modules
+│ ├── include/telemetry/
+│ │ ├── PacketWriter.h
+│ │ ├── TelemetryRecorder.h
+│ │ ├── TelemetryReader.h
+│ │ ├── PacketReader.h
+│ │ ├── TelemetryFormat.h
+│ │ ├── CRC.h
+│ │ └── Logger.h
+│ └── src/
+│ ├── PacketWriter.cpp
+│ ├── TelemetryRecorder.cpp
+│ ├── TelemetryReader.cpp
+│ ├── PacketReader.cpp
+│ └── Logger.cpp
+├── 01_converter/ CLI warmup
+├── 02_logger/ Logging utility demo
+├── 03_packet_writer/ PacketWriter demo app
+├── 04_recorder/ Binary telemetry recorder demo app
+├── 05_reader/ Binary telemetry reader demo app
+├── 06_packet_reader/ PacketReader deserialization helper
+└── 07_telemetry_simulator/ Mini telemetry simulator
 ```
-
-PacketWriter and TelemetryRecorder now live in telemetry_lib/ and are reused across projects.
 
 ---
 
 ## Toolchain
 
-```markdown
 - `clang++` (C++20)
 - GNU Make
-- Visual Studio Code
-```
+- Visual Studio Code (optional)
 
 ---
 
@@ -51,29 +61,21 @@ PacketWriter and TelemetryRecorder now live in telemetry_lib/ and are reused acr
 
 ### ✅ 01 — Unit Converter (CLI Warmup)
 
-A simple command-line program to practice:
-
-- C++ input/output (`std::cin`, `std::cout`)
-- Functions and control flow
-- Basic project structure
+- Practice modern C++ input/output (`std::cin`, `std::cout`)
+- Functions, control flow, and simple project structure
 
 ---
 
 ### ✅ 02 — Logger Utility
 
-A reusable logging class built in modern C++.
+- Reusable logging class (`Logger`) with:
+  - File + console output
+  - Timestamped messages
+  - Severity levels (`INFO`, `WARN`, `ERROR`)
+  - Minimum log-level filtering
+  - RAII-based file management
 
-Features include:
-
-- Console + file output
-- Timestamped log messages
-- Log severity levels (`INFO`, `WARN`, `ERROR`)
-- Minimum log level filtering
-- RAII-based file management
-- Modular header/source split (`Logger.h` / `Logger.cpp`)
-- Makefile-based build workflow
-
-Example output:
+Example:
 
 ```text
 2026-02-05 14:03:22 [INFO] Telemetry system started
@@ -81,146 +83,125 @@ Example output:
 2026-02-05 14:03:30 [ERROR] Sensor disconnected
 ```
 
+---
+
 ### ✅ 03 — Telemetry Packet Builder
 
-A reusable binary packet construction library built in modern C++20.
+- Safe, type-aware binary packet construction
+- Endianness-aware encoding (big vs little)
+- Payload support via `add_bytes()`
+- Efficient buffer reuse with `reserve()`
+- Zero-copy export with `std::span<const uint8_t>`
 
-Features include:
-- Safe byte-buffer packet building using std::vector<uint8_t>
-- Type-safe field append methods (u8, u16, u32, float)
-- Explicit endianness handling (big vs little endian)
-- Raw payload support with add_bytes()
-- Binary-safe export using std::span<const uint8_t>
-- Efficient buffer reuse with reserve()
-- Modular header/source split (PacketWriter.h / PacketWriter.cpp)
-- Makefile-based build workflow
+Example hex output:
 
-Example packet output (hex):
-```
+```text
 01 00 2A 00 01 86 A0 41 CC 00 00 00 08 53 45 4E 53 4F 52 5F 41
 ```
 
+---
+
 ### ✅ 04 — Binary Telemetry Recorder
-A reusable binary telemetry recording module built in modern C++20.
 
-Features include:
-- Stream-based telemetry packet persistence using std::ofstream in binary mode
-- Safe framed recording format: [u32 packet_size][packet_bytes...][u32 crc]
-- Support for writing multiple packets over time (continuous append recording)
-- RAII-based file ownership (open in constructor, close automatically)
-- Optional append vs truncate modes for flexible recording workflows
-- Fixed file header with magic signature ("TLRY") and versioning support
-- Length-prefix framing for future parsing and validation (Project 5)
-- Integration with PacketWriter via std::span<const uint8_t> zero-copy packet export
-- Modular reusable library design inside telemetry_lib/
-- Makefile-based build + demo testing workflow
+- Binary-safe stream recording (`std::ofstream`)
+- Framed packet format with CRC32: `[u32 size][payload][u32 crc]`
+- Fixed header with magic `"TLRY"` and versioning
+- RAII file ownership
+- Truncate vs append modes
+- Integration with `PacketWriter`
 
-Example recorded stream output (hex):
-```
+Example recorded stream:
+
+```text
 54 4C 52 59 01 00 00 00
 03 00 00 00 AA BB CC
 05 00 00 00 12 34 56 78 9A
 ```
+
+---
 
 ### ✅ 05 — Binary Telemetry Reader + Defensive Parser
-A reusable binary telemetry reading and validation module built in modern C++20.
 
-Features include:
-- Stream-based telemetry replay using std::ifstream in binary mode
-- Safe framed parsing of format: [u32 packet_size][packet_bytes...]
-- Header validation with fixed magic signature ("TLRY") and version enforcement
-- Strict truncation detection for header, size fields, and payload data
-- Clean EOF semantics via iterator-style read_next() API
-- Configurable maximum packet size to prevent oversized memory allocations
-- Custom ParseError exception for structured error handling
-- Defensive binary read helper (read_exact) to prevent partial-read corruption
-- Full manual test harness covering valid and malformed file cases
-- Modular reusable library design inside telemetry_lib/
-- Makefile-based build + standalone test execution workflow
+- Binary-safe stream replay (`std::ifstream`)
+- Framed parsing with CRC32 validation
+- Header validation: magic, version, flags
+- Strict truncation detection
+- Iterator-style `read_next()` API
+- Configurable `max_packet_size` to prevent large allocations
+- ParseError exception for corrupted streams
+- Full logging support
 
-Example validated stream input (hex):
-```
+Example input:
+
+```text
 54 4C 52 59 01 00 00 00
 03 00 00 00 AA BB CC
 05 00 00 00 12 34 56 78 9A
 ```
 
+---
+
 ### ✅ 06 — PacketReader: Binary Telemetry Deserialization
-A lightweight, reusable packet deserialization helper built in modern C++20, designed to complement PacketWriter for robust telemetry parsing.
 
-Features include:
-
-- Wraps a contiguous byte buffer (std::span<const uint8_t>) for sequential reads
-- Supports reading u8, u16, u32, u64, float, and arbitrary byte spans
-- Handles Big Endian or Little Endian multi-byte fields with configurable endianness
-- Bounds-checked reads with std::out_of_range exceptions for safety
-
-Utility methods:
-
-- remaining() — number of unread bytes
-- empty() — check if all bytes have been consumed
-- skip(count) — advance buffer without reading
-- clear() — reset buffer to empty
-- Simple, reusable API for implementing structured telemetry deserialization
-- Fully compatible with TelemetryFrame::deserialize(PacketReader&) for round-trip frame     reconstruction
-- Clean and modular design, ready to integrate with telemetry replay or test harnesses
+- Sequential reading from `std::span<const uint8_t>`
+- Read operations: u8, u16, u32, u64, float, arbitrary spans
+- Configurable endianness
+- Bounds-checked reads with exceptions
+- Cursor-style semantics (forward-only)
+- Integration with `TelemetryFrame::deserialize()`
 
 Example usage:
 
-```text
+```cpp
 PacketReader reader(pw.bytes(), PacketReader::Endianness::Big);
 TelemetryFrame frame;
 frame.deserialize(reader);
 print_frame(frame);
 ```
 
+---
+
 ### ✅ 07 — Mini Telemetry Simulator
-A configurable telemetry frame generator for testing serialization and deserialization pipelines.
 
-Features include:
+- Generates realistic telemetry frames:
+- Timestamp, position, velocity, temperature, voltage, status flags
+- Configurable step size, duration, and noise
+- Serializes frames via TelemetryFrame::serialize(PacketWriter&)
+- Writes to TelemetryRecorder with CRC validation
+- Optional in-memory frame access for testing
+- Designed to integrate with PacketReader for replay
 
-- Generates realistic telemetry frames with fields:
-- Timestamp, temperature, voltage, position, velocity, status flags
-- Supports deterministic evolution with configurable step size and duration
-- Adds realistic drift and noise to all fields for simulation fidelity
-- Serializes frames using TelemetryFrame::serialize(PacketWriter&)
-- Writes frames to TelemetryRecorder for safe disk persistence, including CRC32 validation
-- Optional in-memory storage of frames for immediate access or testing
-- Easily extensible for new telemetry channels or packet types
-- Designed for integration with PacketReader and TelemetryFrame::deserialize to complete a full replay pipeline
-- Clean, modular, and self-contained; ideal for unit tests or demonstration of telemetry systems
-
-Example simulation loop:
+Examle simulation loop:
 
 ```cpp
 TelemetrySimulator sim(config, recorder);
-sim.run(); // generates frames → serializes → records
-auto frames = sim.get_frames(); // optional in-memory access for testing
+sim.run();             // generate + serialize + record frames
+auto frames = sim.get_frames(); // optional in-memory access
 ```
 
 ---
 
-## Upcoming Projects
+## Upcoming Capstone
 
-### Capstone Simulator
+A final, resume-ready project:
 
-A full mini telemetry system:
-
-- Packet generation
-- Serialization/deserialization
-- Logging + recording
-- Resume-ready final deliverable
+- Full telemetry system:
+  - Packet generation
+  - Serialization/deserialization
+  - Logging + recording + replay
+  - CLI tools + optional CSV/JSON export
+  - Replay validation with CRCs
+- Designed to showcase production-quality C++ systems engineering skills
 
 ---
 
 ## Build Instructions
 
-Each project contains its own Makefile or build commands.
-Projects compile against sources in telemetry_lib/
+All projects compile against sources in telemetry_lib/.
 
-Typical build workflow:
+Typical workflow:
 
-```bash
+```text
 make
 ./program_name
 make clean
@@ -230,5 +211,10 @@ make clean
 
 ## Purpose
 
-This repository is part of a deliberate portfolio progression toward embedded-style
-telemetry and binary protocol development.
+This repository demonstrates a progressive, portfolio-focused path toward:
+
+- Embedded telemetry pipelines
+- Safe binary protocol design
+- Modular, reusable C++20 systems code
+- Defensive programming for file I/O and serialization
+- Resume-ready capstone projects

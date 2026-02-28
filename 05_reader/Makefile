@@ -14,6 +14,7 @@ APP_SRC := main.cpp
 LIB_SRC := ../telemetry_lib/src/TelemetryRecorder.cpp \
            ../telemetry_lib/src/PacketWriter.cpp \
            ../telemetry_lib/src/TelemetryReader.cpp \
+		   ../telemetry_lib/src/Logger.cpp \
 		   ../telemetry_lib/src/CRC.cpp
 
 APP_OBJ := $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(APP_SRC))

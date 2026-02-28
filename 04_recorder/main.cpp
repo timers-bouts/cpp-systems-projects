@@ -4,11 +4,14 @@
 
 int main() {
 
+    telemetry::Logger logger("test.log", telemetry::LogLevel::Info, false);
+
     telemetry::PacketWriter pw(telemetry::PacketWriter::Endianness::Little);
     std::array<std::uint8_t, 3> raw{0xAA, 0xBB, 0xCC};
     pw.add_bytes(raw);
 
-    telemetry::TelemetryRecorder tr("test.bin", telemetry::TelemetryRecorder::OpenMode::Append);
+    telemetry::TelemetryRecorder tr("test.bin", logger,
+                         telemetry::TelemetryRecorder::OpenMode::Append);
     tr.write_packet(pw.bytes());
 
     pw.clear();

@@ -22,21 +22,43 @@ void print_frame(telemetry_sim::TelemetryFrame& frame) {
 
 }
 
+void print_frame_table( std::span<const telemetry_sim::TelemetryFrame> frames) {
+    // Print header
+    std::cout << std::setw(10) << "Time(ms)"
+              << std::setw(12) << "Temp(C)"
+              << std::setw(10) << "Volt(V)"
+              << std::setw(12) << "PosX(m)"
+              << std::setw(12) << "PosY(m)"
+              << std::setw(12) << "Vel(m/s)"
+              << std::setw(10) << "Flags"
+              << "\n";
+
+    std::cout << std::string(78, '-') << "\n";
+
+    // Print each frame
+    for (const auto& f : frames) {
+        std::cout << std::setw(10) << f.timestamp_ms
+                  << std::setw(12) << f.temperature_c
+                  << std::setw(10) << f.voltage_v
+                  << std::setw(12) << f.position_x
+                  << std::setw(12) << f.position_y
+                  << std::setw(12) << f.velocity_mps
+                  << std::setw(10) << f.status_flags
+                  << "\n";
+    }
+}
+
 int main() {
 
+    telemetry::Logger logger("sim.log", telemetry::LogLevel::Info, false);
     telemetry_sim::TelemetrySimulator::Config config;
     config.packet_count = 20;
-    telemetry::TelemetryRecorder recorder("simulation.bin", telemetry::TelemetryRecorder::OpenMode::Truncate);
-    telemetry_sim::TelemetrySimulator simulator(config, recorder);
+    telemetry::TelemetryRecorder recorder("simulation.bin", logger,
+                        telemetry::TelemetryRecorder::OpenMode::Truncate);
+    telemetry_sim::TelemetrySimulator simulator(config, recorder, logger, true);
     simulator.run();
-    auto reader = telemetry::TelemetryReader::open("simulation.bin");
-    std::vector<uint8_t> payload;
-    while (reader.read_next(payload)) {
-        telemetry_sim::TelemetryFrame frame;
-        telemetry::PacketReader pr(payload);
-        frame.deserialize(pr);
-        print_frame(frame);
-    }
+    auto frames = simulator.get_frames();
+    print_frame_table(frames);
 
     return 0;
 }

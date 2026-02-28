@@ -1,140 +1,207 @@
-# Project 4 — Binary Telemetry Recorder
+# Binary Telemetry Recorder (C++20)
 
-This project builds a reusable **binary telemetry recording module** that can persist serialized telemetry packets to disk in a safe, structured, systems-style format.
+A reusable **binary telemetry recording module** that persists serialized telemetry packets to disk using a framed, CRC-protected format.
 
-It is the next step in my modern C++20 systems/embedded portfolio series, building toward a full telemetry packet capstone system.
-
-This module forms the persistence layer for a complete telemetry system:
-- Project 3: Packet serialization (PacketWriter)
-- Project 4: Binary stream recording (TelemetryRecorder)
-- Project 5 (next): Packet parsing + validation
-- Final capstone: Full telemetry replay + checksum + CLI tools
+This module is part of a larger modern C++ systems/embedded telemetry architecture, serving as the persistence layer between packet serialization and packet parsing.
 
 ---
 
-## Goals
+# Overview
 
-The `TelemetryRecorder` module supports:
+`TelemetryRecorder` provides:
 
-- Writing raw telemetry packet byte buffers to a binary file
-- Appending multiple packets over time (stream recording)
-- A simple framed record format for safe parsing
-- RAII-based file ownership (open in constructor, close automatically)
-- Integration with the existing `PacketWriter` serializer library
+- Binary-safe packet persistence
+- Framed record structure for safe replay
+- CRC32 integrity protection
+- RAII-based file ownership
+- Stream append or truncate modes
+- Structured logging integration
+- Move-only resource semantics
+
+This module is designed in a systems-programming style suitable for embedded logging, flight software, or data acquisition pipelines.
 
 ---
+
+# Library Structure
 
 ## Shared Library Structure
 
 The telemetry components are implemented as a reusable shared module:
 
 ```text
-telemetry_lib/
-include/telemetry/
-PacketWriter.h
-TelemetryRecorder.h
-src/
-PacketWriter.cpp
-TelemetryRecorder.cpp
+└── telemetry_lib
+    ├── include
+    │   └── telemetry
+    │       ├── CRC.h
+    │       ├── Logger.h
+    │       ├── PacketReader.h
+    │       ├── PacketWriter.h
+    │       ├── TelemetryFormat.h
+    │       ├── TelemetryReader.h
+    │       └── TelemetryRecorder.h
+    └── src
+        ├── CRC.cpp
+        ├── Logger.cpp
+        ├── PacketReader.cpp
+        ├── PacketWriter.cpp
+        ├── TelemetryReader.cpp
+        └── TelemetryRecorder.cpp
 ```
 
-Project folders such as `04_recorder/` act as demo/test applications that build against this shared library.
+
+Demo/test applications (e.g., `04_recorder/`) link against this shared module.
 
 ---
 
-## Binary File Format
+# Binary File Format
 
-The recorder writes telemetry streams using a simple framed format:
+## File Header (8 bytes)
 
----
-
-### File Header (8 bytes)
-
-Written once at the beginning of a new file:
+Written once when creating a new file:
 
 | Field   | Size | Description |
-|---------|------|-------------|
-| Magic   | 4    | ASCII `"TLRY"` |
-| Version | 2    | Format version (`1`) |
-| Flags   | 2    | Reserved (`0`) |
+|----------|------|------------|
+| Magic    | 4    | ASCII `"TLRY"` |
+| Version  | 2    | Format version (`1`) |
+| Flags    | 2    | Reserved (`0`) |
 
 ---
 
-### Packet Records (Repeated)
+## Packet Record Format
 
 Each packet is written as:
 
 ```text
-[u32 packet_size][packet_bytes...][u32 crc]
+[u32 size_le][payload bytes...][u32 crc32_le]
 ```
-
 
 Where:
 
-- `packet_size` is a 32-bit little-endian length prefix
-- `packet_bytes` is the raw serialized telemetry payload
+- `size_le` is a 32-bit little-endian length
+- The size includes `payload + CRC`
+- `crc32_le` is the CRC-32 checksum of the payload only
 
-Example:
+Example layout:
 
 ```text
-
-03 00 00 00 AA BB CC
-05 00 00 00 12 34 56 78 9A
+54 4C 52 59 01 00 00 00 TLRY header
+0B 00 00 00 size = 11 bytes
+AA BB CC DD EE payload (5 bytes)
+12 34 56 78 crc32
 ```
 
 ---
 
-## Key Design Features
 
-### RAII File Ownership
+This framing allows:
 
-The recorder opens its output stream in the constructor and closes automatically when destroyed:
-
-- No manual close required
-- Safe cleanup even during exceptions
+- Safe sequential parsing
+- Corruption detection
+- Stream validation
 
 ---
 
-### Binary-Safe Output
+# Key Design Features
 
-Packets are written using `std::ofstream::write()` in binary mode:
+## RAII File Ownership
 
-- No formatting or text conversion
-- Exact byte-for-byte persistence
+- File opened in constructor
+- Automatically closed on destruction
+- No manual resource management required
 
 ---
 
-### Stream Recording Support
+## CRC32 Integrity Protection
 
-The recorder supports two modes:
+Each packet includes a CRC-32 checksum:
+
+- Detects corrupted payloads
+- Enables safe replay validation
+- Provides forward compatibility for parsing tools
+
+---
+
+## Binary-Safe Output
+
+All writes use:
+
+```text
+std::ofstream::write()
+```
+
+with `std::ios::binary`, ensuring:
+
+- No text formatting
+- Exact byte preservation
+- Cross-platform deterministic layout
+
+---
+
+## Stream Recording Modes
+
+Two open modes are supported:
 
 - `Truncate` — overwrite existing file
-- `Append` — continue writing packets to the end of an existing stream
+- `Append` — append to existing telemetry stream
+
+Header is written only when:
+
+- Creating a new file
+- Appending to an empty file
 
 ---
 
-### Defensive Size Handling
+## Defensive Error Handling
 
-Packets larger than `uint32_t` are rejected to prevent corrupted framing:
+The output stream enables exception flags:
 
-- Size prefix is fixed-width for future parsing
+```text
+out_.exceptions(std::ios::failbit | std::ios::badbit);
+```
+
+All write operations:
+
+- Detect I/O failures
+- Throw meaningful `std::runtime_error`
+- Prevent silent corruption
 
 ---
 
-## Building and Running
+## Structured Logging Integration
 
-From the `04_recorder/` directory:
+The recorder integrates with the project’s `Logger` system:
+
+- Logs file open events
+- Logs header creation
+- Logs packet writes (size + CRC)
+- Logs error conditions
+
+This enables observability during simulation and replay testing.
+
+---
+
+## Move-Only Semantics
+
+`TelemetryRecorder` is:
+
+- Non-copyable
+- Move-constructible
+- Not move-assignable
+
+This prevents accidental duplication of file handles and enforces correct ownership semantics.
+
+---
+
+# Building
+
+From the demo directory:
 
 ```bash
 make clean
 make
 ./recorder_demo
 
-This generates a binary output file such as:
-
-```text
-test.bin
-```
+This produces a binary telemetry file (e.g., test.bin).
 
 Inspecting Output
 To view the raw bytes written to disk:
@@ -146,19 +213,38 @@ xxd -g 1 test.bin
 Example output:
 
 ```text
-54 4c 52 59 01 00 00 00   TLRY header
-03 00 00 00 aa bb cc       packet 1
-05 00 00 00 12 34 56 78 9a packet 2
+54 4c 52 59 01 00 00 00
+0b 00 00 00 aa bb cc dd ee 12 34 56 78
 ```
 
 ---
 
+## Role in the Larger Telemetry Systems
+
+This module provides the persistence layer in a staged telemetry architecture:
+
+- Project 2: Logger
+- Project 3: Packet serialization (PacketWriter)
+- **Project 4: Binary stream recording (TelemetryRecorder)**
+- Project 5: Packet parsing + validation
+- Project 6: Packet deserialization (PacketReader)
+- Project 7: Mini simulator test (in preparation for capstone)
+- Final capstone: Full telemetry replay + checksum + CLI tools
+
+---
+
 ## Why This Matters
-This module forms the persistence layer for a complete telemetry system:
-Project 3: Packet serialization (PacketWriter)
-Project 4: Binary stream recording (TelemetryRecorder)
-Project 5 (next): Packet parsing + validation
-Final capstone: Full telemetry replay + checksum + CLI tools
+
+This module demonstrates:
+
+- Systems-style binary file design
+- Framed streaming protocols
+- CRC-based integrity protection
+- RAII resource ownership
+- Exception-safe I/O
+- Move semantics in C++20
+
+It is designed to resemble real-world embedded or flight-data logging systems.
 
 ---
 
@@ -167,8 +253,3 @@ Final capstone: Full telemetry replay + checksum + CLI tools
 - Reading packets back from disk safely
 - Validating framing and header integrity
 - Detecting corrupted or malformed streams
-- Adding checksums for robustness
-
-
-
-

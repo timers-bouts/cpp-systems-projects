@@ -1,137 +1,211 @@
-# Project 5 — Binary Telemetry Reader + Defensive Packet Parser
+# Binary Telemetry Reader (C++20)
 
-This project builds a reusable **binary telemetry reading and validation module** that can safely parse recorded telemetry streams back from disk.
+A reusable **binary telemetry reading and validation module** that safely parses recorded telemetry streams from disk.
 
-It is the next step in my modern C++20 systems/embedded portfolio series, continuing toward a full telemetry packet capstone system.
+This module completes the replay + validation layer of a modern C++ telemetry infrastructure system.
 
-This module forms the replay + validation layer of a complete telemetry pipeline:
-
-- Project 3: Packet serialization (`PacketWriter`)
-- Project 4: Binary stream persistence (`TelemetryRecorder`)
-- **Project 5: Binary packet parsing + validation (`TelemetryReader`)**
-- Final capstone: Full telemetry replay + checksums + CLI tools
+It is designed with defensive parsing, corruption detection, and strict binary validation suitable for embedded logging and safety-critical replay pipelines.
 
 ---
 
-## Goals
+# Overview
 
-The `TelemetryReader` module supports:
+`TelemetryReader` provides:
 
-- Opening and validating telemetry `.bin` recording files
-- Verifying file header integrity (magic + version)
-- Reading framed packet records back safely:
+- Binary-safe telemetry file parsing
+- Header validation (magic + version + flags)
+- Framed packet decoding
+- CRC32 payload verification
+- Defensive corruption detection
+- Oversized allocation protection
+- Clean EOF semantics
+- Structured logging integration
+- Move-only resource semantics
+
+This module is built to resemble real-world telemetry replay systems used in embedded, robotics, and flight-style logging environments.
+
+---
+
+# Library Structure
 
 ```text
-  [u32 packet_size][packet_bytes...]
+└── telemetry_lib
+    ├── include
+    │   └── telemetry
+    │       ├── CRC.h
+    │       ├── Logger.h
+    │       ├── PacketReader.h
+    │       ├── PacketWriter.h
+    │       ├── TelemetryFormat.h
+    │       ├── TelemetryReader.h
+    │       └── TelemetryRecorder.h
+    └── src
+        ├── CRC.cpp
+        ├── Logger.cpp
+        ├── PacketReader.cpp
+        ├── PacketWriter.cpp
+        ├── TelemetryReader.cpp
+        └── TelemetryRecorder.cpp
 ```
 
-- Defensive parsing against corrupted or malformed streams
-- Preventing oversized allocations with configurable limits
-- Returning packets as raw std::vector<uint8_t> payloads
 
-## Shared Library Structure
+Demo/test applications such as `05_reader/` build against this shared module.
 
-The telemetry components are implemented as a reusable shared module:
+---
 
-```text
-telemetry_lib/
-include/telemetry/
-PacketWriter.h
-TelemetryRecorder.h
-TelemetryReader.h
-TelemetryFormat.h
-src/
-PacketWriter.cpp
-TelemetryRecorder.cpp
-TelemetryReader.cpp
-```
+# Binary File Format
 
-Project folders such as 05_reader/ act as demo/test applications that build against this shared library.
+The reader parses the same framed format written by `TelemetryRecorder`.
 
-## Binary File Format
+---
 
-The reader parses the same framed telemetry format written by Project 4:
+## File Header (8 bytes)
 
-File Header (8 bytes)
 Validated once at file open:
-Field	Size	Description
-Magic	4	ASCII "TLRY"
-Version	2	Format version (1)
-Flags	2	Reserved (0)
 
-If the header is invalid or truncated, the reader throws a ParseError.
+| Field   | Size | Description |
+|----------|------|------------|
+| Magic    | 4    | ASCII `"TLRY"` |
+| Version  | 2    | Format version (`1`) |
+| Flags    | 2    | Reserved (`0`) |
 
-### Packet Records (Repeated)
+If:
+
+- Magic does not match
+- Version is unsupported
+- Header is truncated
+
+The reader throws a `ParseError`.
+
+---
+
+## Packet Record Format
 
 Each telemetry record is stored as:
-```text
-[u32 packet_size][packet_bytes...]
-```
+
+[u32 size_le][payload bytes...][u32 crc32_le]
 
 Where:
 
-- packet_size is a 32-bit little-endian length prefix
-- packet_bytes is the raw serialized telemetry payload
+- `size_le` is a 32-bit little-endian length
+- Size includes `payload + CRC`
+- `crc32_le` is the CRC-32 of the payload only
 
 Example stream:
+
 ```text
-03 00 00 00 AA BB CC
-05 00 00 00 12 34 56 78 9A
+54 4C 52 59 01 00 00 00 TLRY header
+0B 00 00 00 size = 11 bytes
+AA BB CC DD EE payload (5 bytes)
+12 34 56 78 crc32
 ```
 
-## Key Design Features
+---
 
-### Defensive Parsing + Validation
+# Key Design Features
 
-The reader is designed to safely reject malformed telemetry streams:
+## Defensive Parsing + Validation
+
+The reader is intentionally strict and rejects malformed streams:
 
 - Detects truncated headers
 - Rejects incomplete size fields
-- Detects truncated payload records
-- Rejects invalid packet sizes (0 or oversized)
-- All corruption triggers a ParseError exception.
+- Detects truncated payloads
+- Validates CRC32 checksum
+- Rejects zero-length or oversized packets
+- Structured logging integration
+- Throws `ParseError` on corruption
 
-### Clean EOF Semantics
+No silent failures.
+
+---
+
+## Clean EOF Semantics
 
 Packet reading uses an iterator-style API:
+
 ```text
 bool read_next(std::vector<uint8_t>& out_packet);
 ```
 
 Behavior:
 
-- Returns true when a full packet is successfully read
-- Returns false only on clean EOF at a record boundary
-- Throws ParseError on corruption or truncation
+- Returns `true` when a full, valid packet is read
+- Returns `false` only on clean EOF at a record boundary
+- Throws `ParseError` on corruption or truncation
 
-### Oversized Allocation Protection
+This clean separation simplifies replay loops.
 
-To prevent malicious or corrupted size fields from forcing huge allocations, the reader enforces a configurable maximum:
+---
+
+## Oversized Allocation Protection
+
+To prevent malicious or corrupted size fields from forcing huge allocations:
+
 ```text
 TelemetryReader::Options opt;
 opt.max_packet_size = 64 * 1024;
 ```
 
-Any record larger than this limit is rejected immediately.
+Any record exceeding this limit is rejected immediately.
 
-### Exact Binary Reads
+This protects against memory exhaustion attacks and corrupted files.
 
-The reader uses a defensive internal helper:
+---
 
-- read_exact()
+## Exact Binary Reads
 
-Which guarantees:
+The reader uses a defensive internal helper (`read_exact`) that guarantees:
 
 - Either the requested bytes are fully read
-- Or truncation/corruption is detected immediately
+- Or truncation is detected immediately
 
-This prevents partial reads or silent stream failures.
+This prevents partial reads and silent stream state failures.
 
-## Building and Running
+---
 
-From the 05_reader/ directory:
+## CRC32 Verification
 
-```text
+Each packet’s CRC is recomputed and verified during parsing:
+
+- Detects payload corruption
+- Ensures integrity across write → disk → read cycle
+- Enables safe replay validation
+
+If CRC does not match, a `ParseError` is thrown.
+
+---
+
+## Structured Logging Integration
+
+The reader integrates with the project’s `Logger` system:
+
+- Logs file open + header validation
+- Logs packet reads (size + CRC)
+- Logs corruption events
+- Logs clean EOF
+
+This provides observability during simulation and replay testing.
+
+---
+
+## Move-Only Semantics
+
+`TelemetryReader` is:
+
+- Non-copyable
+- Move-constructible
+- Not move-assignable
+
+This prevents accidental duplication of file streams and enforces proper ownership semantics.
+
+---
+
+# Building
+
+From the `05_reader/` directory:
+
+```bash
 make clean
 make
 make run ARGS="test.bin"
@@ -147,6 +221,8 @@ Packet 2: 5 bytes
 12 34 56 78 9a
 ```
 
+---
+
 ## Inspecting Telemetry Recordings
 
 To view the raw bytes on disk:
@@ -158,35 +234,57 @@ xxd -g 1 test.bin
 Example:
 
 ```text
-54 4c 52 59 01 00 00 00   TLRY header
-03 00 00 00 aa bb cc       packet 1
-05 00 00 00 12 34 56 78 9a packet 2
+54 4c 52 59 01 00 00 00
+0b 00 00 00 aa bb cc dd ee 12 34 56 78
 ```
+
+---
+
+## Role in the Larger Telemetry Systems
+
+This module provides the persistence layer in a staged telemetry architecture:
+
+- Project 2: Logger
+- Project 3: Packet serialization (PacketWriter)
+- Project 4: Binary stream recording (TelemetryRecorder)
+- **Project 5: Packet parsing + validation**
+- Project 6: Packet deserialization (PacketReader)
+- Project 7: Mini simulator test (in preparation for capstone)
+- Final capstone: Full telemetry replay + checksum + CLI tools
+
+---
 
 ## Why This Matters
 
-This module completes the core telemetry loop:
+This module demonstrates:
 
-- Project 3 builds packets
-- Project 4 records packets to disk
-- Project 5 replays packets safely back from disk
+- Defensive binary protocol parsing
+- Framed streaming format validation
+- CRC-based integrity protection
+- Exception-safe I/O
+- RAII resource ownership
+- Move semantics in C++20
+- Memory-safety considerations in systems programming
 
-Defensive binary parsing is a critical systems skill in:
+These are core skills in:
 
-- embedded logging
-- flight telemetry
-- automotive event recording
-- robotics trace capture
-- safety-critical replay pipelines
+- Embedded logging systems
+- Robotics trace capture
+- Automotive event recording
+- Flight telemetry replay
+- Safety-critical data pipelines
+
+---
 
 ## Next Steps
 
 Planned improvements in upcoming projects:
 
-- Project 6: Telemetry Simulator (device-style packet producer)
-- Project 7: Full serializer/deserializer system
-- Message IDs + typed decoding
-- Checksums + validation
-- Recording + replay CLI tools
-- Tests + documentation
-- Professional GitHub-ready capstone
+- Project 6: Packet Deserializer (Packet Reader)
+- Project 7: Telemetry Simulator (device-style packet producer)
+- Typed message decoding (Message IDs)
+- Structured packet deserialization
+- CLI replay + inspection tools
+- JSON export mode
+- Simulator integration
+- Full capstone telemetry system

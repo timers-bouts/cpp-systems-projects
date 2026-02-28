@@ -2,11 +2,11 @@
 #include <iostream>
 
 int main() {
-    telemetry::Logger log("output.log", telemetry::LogLevel::Warn);
+    telemetry::Logger logger("output.log", telemetry::LogLevel::Warn, false);
 
-    log.info("Telemetry system started");
-    log.warn("Packet delay detected");
-    log.error("Sensor disconnected");
+    logger.info("Telemetry system started");
+    logger.warn("Packet delay detected");
+    logger.error("Sensor disconnected");
 
     std::cout << "Log written to output.log\n";
     return 0;

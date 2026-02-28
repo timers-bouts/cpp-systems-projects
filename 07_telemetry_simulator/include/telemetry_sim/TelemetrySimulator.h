@@ -6,6 +6,7 @@
 #include <span>
 #include "TelemetryFrame.h"
 #include "telemetry/TelemetryRecorder.h"
+#include "telemetry/Logger.h"
 
 namespace telemetry_sim {
 
@@ -21,7 +22,8 @@ namespace telemetry_sim {
             };
 
             // Constructor: takes configuration and a recorder instance
-            TelemetrySimulator(const Config& config, telemetry::TelemetryRecorder& recorder);
+            TelemetrySimulator(const Config& config, telemetry::TelemetryRecorder& recorder,
+                                telemetry::Logger& logger, bool saveFrames = false);
 
             // Destructor
             ~TelemetrySimulator() = default;
@@ -44,6 +46,9 @@ namespace telemetry_sim {
             // Random number generator
             std::mt19937 rng_;
 
+            //Logger
+            telemetry::Logger& logger_;
+
             // Internal simulation state
             uint64_t current_time_ms_;
             float position_x_;
@@ -62,6 +67,7 @@ namespace telemetry_sim {
             std::normal_distribution<float> noise_temperature_;
             std::normal_distribution<float> noise_voltage_;
             std::vector<TelemetryFrame> frames_;
+            bool save_frames_;
 
     };
 

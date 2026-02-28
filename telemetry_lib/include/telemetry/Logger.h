@@ -16,6 +16,7 @@ namespace telemetry {
         private:
             std::ofstream file;
             LogLevel min_level;
+            bool mirror_to_console_;
 
             // Helper: returns formatted timestamp string
             std::string make_timestamp() const;
@@ -28,7 +29,9 @@ namespace telemetry {
 
         public:
             // Constructor: opens log file
-            Logger(const std::string& filename, LogLevel minLevel);
+            Logger(const std::string& filename,
+                    LogLevel minLevel,
+                    bool mirrorToConsole = false);
 
             // Destructor: closes file automatically
             ~Logger();
